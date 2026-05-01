@@ -29,6 +29,8 @@ const MyDocuments = lazy(() => import('./pages/dashboard/MyDocuments'));
 const NewRequest = lazy(() => import('./pages/dashboard/NewRequest'));
 const BlockchainVerify = lazy(() => import('./pages/dashboard/BlockchainVerify'));
 const Profile = lazy(() => import('./pages/dashboard/Profile'));
+const DocumentDetails = lazy(() => import('./pages/dashboard/DocumentDetails'));
+
 
 const LandingPage = () => (
   <div className="flex flex-col min-h-screen relative overflow-x-hidden bg-bg">
@@ -74,6 +76,8 @@ function App() {
             <Route path="demandes/nouvelle" element={<NewRequest />} />
             <Route path="verification" element={<BlockchainVerify />} />
             <Route path="profil" element={<Profile />} />
+            <Route path="documents/:reference" element={<DocumentDetails />} />
+
           </Route>
 
           {/* Fallback */}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { FileText, Clock, CheckCircle2, XCircle, ExternalLink, Search, Filter, Download } from 'lucide-react';
 import { useDashboardData } from '@/hooks/useDashboardData';
@@ -6,6 +7,7 @@ import { DashboardCard } from '@/components/dashboard/DashboardCards';
 import Skeleton from '../../components/ui/Skeleton';
 
 const MyDocuments: React.FC = () => {
+  const navigate = useNavigate();
   const { demandes, loading } = useDashboardData();
 
   const getStatusStyle = (status: string) => {
@@ -134,18 +136,11 @@ const MyDocuments: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex justify-end gap-2">
-                        {doc.est_pret && doc.document_genere && (
-                          <a 
-                            href={doc.document_genere} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-colors"
-                            title="Télécharger le document"
-                          >
-                            <Download size={18} />
-                          </a>
-                        )}
-                        <button className="p-2 text-gray-400 hover:text-dashboard-sidebar transition-colors" title="Voir les détails">
+                        <button 
+                          onClick={() => navigate(`/dashboard/documents/${doc.reference}`)}
+                          className="p-2 text-gray-400 hover:text-green transition-colors"
+                          title="Voir les détails"
+                        >
                           <ExternalLink size={18} />
                         </button>
                       </div>
