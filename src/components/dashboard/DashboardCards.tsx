@@ -12,7 +12,7 @@ interface CardProps {
  */
 export const DashboardCard: React.FC<CardProps> = ({ children, className = '', title }) => {
   return (
-    <div className={`bg-white border border-dashboard-border rounded-admin p-6 shadow-sm ${className}`}>
+    <div className={`bg-white border border-dashboard-border rounded-admin p-4 md:p-6 shadow-sm ${className}`}>
       {title && (
         <h3 className="text-lg font-semibold text-text-primary mb-4 border-b border-dashboard-border pb-2">
           {title}
@@ -44,7 +44,7 @@ export const StatsCard: React.FC<StatsCardProps> = ({ label, value, icon, varian
   const style = variantStyles[variant];
 
   return (
-    <div className="bg-white border border-dashboard-border rounded-admin p-6 flex items-center space-x-4 shadow-sm transition-colors duration-200">
+    <div className="bg-white border border-dashboard-border rounded-admin p-4 md:p-6 flex items-center space-x-4 shadow-sm transition-colors duration-200">
       <div className={`w-12 h-12 ${style.iconBg} rounded-xl flex items-center justify-center ${style.text}`}>
         {icon}
       </div>

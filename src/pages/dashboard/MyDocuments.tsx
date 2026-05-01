@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { FileText, Clock, CheckCircle2, XCircle, ExternalLink, Search, Filter, Download } from 'lucide-react';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { DashboardCard } from '@/components/dashboard/DashboardCards';
+import Skeleton from '../../components/ui/Skeleton';
 
 const MyDocuments: React.FC = () => {
   const { demandes, loading } = useDashboardData();
@@ -77,9 +78,19 @@ const MyDocuments: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-dashboard-border">
               {loading ? (
-                [1, 2, 3].map((i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td colSpan={6} className="px-6 py-8"><div className="h-4 bg-gray-100 rounded w-full"></div></td>
+                [1, 2, 3, 4, 5].map((i) => (
+                  <tr key={i} className="border-b border-dashboard-border">
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-20" /></td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <Skeleton variant="circle" className="w-8 h-8" />
+                        <Skeleton className="h-4 w-32" />
+                      </div>
+                    </td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-24" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-6 w-20 rounded-full" /></td>
+                    <td className="px-6 py-4"><Skeleton className="h-4 w-28" /></td>
+                    <td className="px-6 py-4 text-right"><Skeleton className="h-8 w-8 rounded-lg ml-auto" /></td>
                   </tr>
                 ))
               ) : demandes.length > 0 ? (

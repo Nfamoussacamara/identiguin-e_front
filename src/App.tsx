@@ -9,6 +9,7 @@ import Footer from '@/components/layout/Footer';
 import BackToTop from '@/components/ui/BackToTop';
 import MeshBackground from '@/components/ui/MeshBackground';
 import Preloader from '@/components/ui/Preloader';
+import { useAppInit } from './hooks/useAppInit';
 
 // Landing Sections
 import Hero from '@/components/sections/Hero';
@@ -49,18 +50,13 @@ const LandingPage = () => (
 );
 
 function App() {
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 2000);
-    return () => clearTimeout(timer);
-  }, []);
+  const { isInitializing } = useAppInit();
 
   return (
     <Router>
       <Toaster position="bottom-right" richColors closeButton />
       <AnimatePresence>
-        {loading && <Preloader />}
+        {isInitializing && <Preloader />}
       </AnimatePresence>
 
       <Suspense fallback={<div className="h-screen w-screen bg-dashboard-bg flex items-center justify-center font-bold text-dashboard-sidebar">Chargement sécurisé...</div>}>

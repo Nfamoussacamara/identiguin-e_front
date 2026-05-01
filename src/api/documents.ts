@@ -39,6 +39,11 @@ export const getProfile = async (): Promise<IProfile> => {
   return response.data;
 };
 
+export const getDemandeStatus = async (reference: string): Promise<IDemande> => {
+  const response = await client.get<IDemande>(`/demandes/${reference}/`);
+  return response.data;
+};
+
 export const updateProfile = async (data: Partial<IProfile>, photoFile?: File): Promise<IProfile> => {
   const formData = new FormData();
   Object.entries(data).forEach(([key, value]) => {

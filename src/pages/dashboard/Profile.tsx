@@ -5,11 +5,38 @@ import { useProfile } from '@/hooks/useProfile';
 import { DashboardCard } from '@/components/dashboard/DashboardCards';
 import ProfileEditModal from '@/components/dashboard/ProfileEditModal';
 
+import Skeleton from '../../components/ui/Skeleton';
+
 const Profile: React.FC = () => {
   const { profile, initiales, isLoading } = useProfile();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  if (isLoading) return <div className="p-8 animate-pulse bg-white rounded-3xl h-64"></div>;
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-8 pb-12 animate-pulse">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-48" />
+            <Skeleton className="h-4 w-64" />
+          </div>
+          <Skeleton className="h-12 w-40 rounded-2xl" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <Skeleton className="md:col-span-2 h-64 rounded-[2.5rem]" />
+          <div className="space-y-4">
+            <Skeleton className="h-32 rounded-[1.5rem]" />
+            <Skeleton className="h-32 rounded-[1.5rem]" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <Skeleton className="h-64 rounded-[1.5rem]" />
+          <Skeleton className="h-64 rounded-[1.5rem]" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-12">

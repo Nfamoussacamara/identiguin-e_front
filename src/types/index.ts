@@ -41,6 +41,9 @@ export interface IDemande {
   statut: string;
   citoyen: any;
   blockchain_tx_hash?: string;
+  document_genere?: string;
+  motif_rejet?: string;
+  est_pret?: boolean;
   created_at: string;
   updated_at: string;
 }
