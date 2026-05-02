@@ -1,24 +1,84 @@
 import React from 'react';
+import Skeleton from '../ui/Skeleton';
 
-interface CardProps {
-  children: React.ReactNode;
-  className?: string;
+interface DashboardCardProps {
   title?: string;
+  value?: string | number;
+  valueColor?: string;
+  sublabel?: string;
+  sublabelColor?: string;
+  borderColor?: string;
+  loading?: boolean;
+  content?: React.ReactNode;
+  children?: React.ReactNode;
+  className?: string;
 }
 
 /**
- * Composant de carte générique pour le dashboard.
- * Respecte la bordure 1px grise et l'arrondi XL de la référence.
+ * Composant DashboardCard Premium - Utilisé pour les KPI et les sections du dashboard.
+ * Conforme au Cahier des Charges IdentiGuinée 2026.
  */
-export const DashboardCard: React.FC<CardProps> = ({ children, className = '', title }) => {
+export const DashboardCard: React.FC<DashboardCardProps> = ({ 
+  title, 
+  value, 
+  valueColor, 
+  sublabel, 
+  sublabelColor, 
+  borderColor, 
+  loading = false, 
+  content,
+  children,
+  className = ''
+}) => {
+  if (loading) {
+    return (
+      <div 
+        className={`bg-white border border-dashboard-border rounded-admin p-6 shadow-sm ${className}`}
+        style={borderColor ? { borderTop: `4px solid ${borderColor}` } : {}}
+      >
+        <div className="space-y-3">
+          <Skeleton className="h-3 w-1/2" />
+          <Skeleton className="h-8 w-1/3" />
+          <Skeleton className="h-3 w-2/3" />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`bg-white border border-dashboard-border rounded-admin p-4 md:p-6 shadow-sm ${className}`}>
-      {title && (
-        <h3 className="text-lg font-semibold text-text-primary mb-4 border-b border-dashboard-border pb-2">
+    <div 
+      className={`bg-white border border-dashboard-border rounded-admin p-6 shadow-sm overflow-hidden transition-all duration-300 ${className}`}
+      style={borderColor ? { borderTop: `4px solid ${borderColor}` } : {}}
+    >
+      {title && value === undefined && (
+        <h3 className="text-sm font-black text-dark uppercase tracking-tight mb-4 flex items-center justify-between">
           {title}
         </h3>
       )}
-      {children}
+
+      {value !== undefined ? (
+        <div className="flex flex-col gap-3">
+          <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{title}</p>
+          <h2 
+            className="text-4xl font-display font-black tracking-tighter leading-none"
+            style={{ color: valueColor || '#1A2E1F' }}
+          >
+            {value}
+          </h2>
+          {sublabel && (
+            <p 
+              className="text-[10px] font-bold uppercase tracking-tight"
+              style={{ color: sublabelColor || '#5A7A62' }}
+            >
+              {sublabel}
+            </p>
+          )}
+        </div>
+      ) : (
+        <>
+          {content || children}
+        </>
+      )}
     </div>
   );
 };
@@ -44,13 +104,13 @@ export const StatsCard: React.FC<StatsCardProps> = ({ label, value, icon, varian
   const style = variantStyles[variant];
 
   return (
-    <div className="bg-white border border-dashboard-border rounded-admin p-4 md:p-6 flex items-center space-x-4 shadow-sm transition-colors duration-200">
+    <div className="bg-white border border-dashboard-border rounded-admin p-6 flex items-center space-x-4 shadow-sm hover:shadow-md transition-all">
       <div className={`w-12 h-12 ${style.iconBg} rounded-xl flex items-center justify-center ${style.text}`}>
         {icon}
       </div>
       <div>
-        <div className="text-2xl font-bold text-text-primary leading-none">{value}</div>
-        <div className={`text-sm font-medium mt-1 ${style.text}`}>{label}</div>
+        <div className="text-2xl font-display font-black text-dark leading-none">{value}</div>
+        <div className={`text-[10px] font-black uppercase tracking-widest mt-1 ${style.text}`}>{label}</div>
       </div>
     </div>
   );

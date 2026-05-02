@@ -33,8 +33,23 @@ const Login: React.FC = () => {
       if (access && refresh) {
         localStorage.setItem('access_token', access);
         localStorage.setItem('refresh_token', refresh);
-        toast.success("Connexion réussie ! Bienvenue sur votre espace citoyen.");
-        navigate('/dashboard');
+        
+        // Récupérer le profil pour vérifier le rôle
+        const profileRes = await client.get('/auth/me/', {
+          headers: { Authorization: `Bearer ${access}` }
+        });
+        
+        const isStaff = profileRes.data.is_staff;
+        localStorage.setItem('is_admin', isStaff ? 'true' : 'false');
+        
+        toast.success(isStaff ? "Connexion administrateur réussie !" : "Connexion réussie ! Bienvenue sur votre espace citoyen.");
+        
+        // Redirection conditionnelle
+        if (isStaff) {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
+        }
       }
     } catch (err: any) {
       console.error("Erreur de connexion:", err);

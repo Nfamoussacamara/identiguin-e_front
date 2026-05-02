@@ -31,11 +31,11 @@ export default {
 
         // --- Isolated Dashboard Tokens (AdminUIUX) ---
         dashboard: {
-          bg: '#F8F7F7',
+          bg: '#F5FAF6',
           sidebar: '#008C44',
           card: '#ffffff',
           active: '#ffce00',
-          border: '#e9ecef',
+          border: '#D0E8D8',
         }
       },
       fontFamily: {

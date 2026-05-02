@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, CreditCard, BookOpen, ArrowRight, ShieldCheck, 
-  Upload, Info, Loader2, CheckCircle, X, Download, Server, Cpu, Fingerprint, Grid
+  Upload, Info, Loader2, CheckCircle, X, Download, Server, Cpu, Fingerprint, Grid,
+  Copy, Check
 } from 'lucide-react';
 import { createDemande, getDemandeStatus } from '@/api/documents';
 import { toast } from 'sonner';
@@ -42,6 +43,7 @@ const NewRequestModal: React.FC<NewRequestModalProps> = ({
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [trackingDemande, setTrackingDemande] = useState<IDemande | null>(null);
+  const [copiedHash, setCopiedHash] = useState(false);
   const pollingRef = useRef<any>(null);
 
   // Synchroniser si le type change depuis l'extérieur
@@ -59,6 +61,13 @@ const NewRequestModal: React.FC<NewRequestModalProps> = ({
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
   }, []);
+
+  const handleCopyHash = (hash: string) => {
+    navigator.clipboard.writeText(hash);
+    setCopiedHash(true);
+    toast.success("Hash copié dans le presse-papier");
+    setTimeout(() => setCopiedHash(false), 2000);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -195,7 +204,7 @@ const NewRequestModal: React.FC<NewRequestModalProps> = ({
                 </button>
 
                 {/* Recap Identité */}
-                <DashboardCard className="bg-gray-50/50 p-4 border-none">
+                <DashboardCard className="bg-gray-100/50 p-4 border border-gray-200">
                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
                           <p className="text-[10px] font-bold text-gray-400 uppercase">Citoyen</p>
@@ -216,7 +225,7 @@ const NewRequestModal: React.FC<NewRequestModalProps> = ({
 
                   <div className="space-y-3">
                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pièces justificatives (Optionnel)</label>
-                    <label className="border-2 border-dashed border-gray-100 rounded-admin p-8 flex flex-col items-center justify-center cursor-pointer hover:border-green/50 transition-colors group bg-gray-50/30">
+                    <label className="border-2 border-dashed border-gray-200 rounded-admin p-8 flex flex-col items-center justify-center cursor-pointer hover:border-green/50 transition-colors group bg-gray-100/30">
                       <input type="file" multiple className="hidden" onChange={handleFileChange} />
                       <Upload className="text-gray-300 group-hover:text-green mb-2" size={24} />
                       <span className="text-xs font-bold text-gray-500">Ajouter des fichiers</span>
@@ -265,7 +274,7 @@ const NewRequestModal: React.FC<NewRequestModalProps> = ({
                         </div>
                         
                         <div className="flex-grow">
-                          <p className={`text-sm font-bold ${isPending ? 'text-gray-300' : 'text-dark'}`}>{s.label}</p>
+                          <p className={`text-sm font-medium ${isPending ? 'text-gray-300' : 'text-gray-700'}`}>{s.label}</p>
                           {isCurrent && (
                             <motion.p 
                               initial={{ opacity: 0 }} 
@@ -296,12 +305,19 @@ const NewRequestModal: React.FC<NewRequestModalProps> = ({
                         <p className="text-xs text-text-muted">Votre document a été ancré sur NaissanceChain.</p>
                       </div>
                       
-                      <div className="bg-white p-3 rounded-xl border border-gray-100 flex items-center justify-between text-left">
+                      <div className="bg-white p-3 rounded-xl border border-gray-100 flex items-center justify-between text-left group/hash">
                         <div className="overflow-hidden">
                            <p className="text-[9px] font-black text-gray-400 uppercase">Hash Transaction</p>
                            <p className="text-[10px] font-mono text-green truncate">{trackingDemande.blockchain_tx_hash}</p>
                         </div>
-                        <ShieldCheck className="text-green shrink-0" size={20} />
+                        <button 
+                          onClick={() => handleCopyHash(trackingDemande.blockchain_tx_hash || '')}
+                          className={`p-2 rounded-lg transition-all ${
+                            copiedHash ? 'bg-green/10 text-green' : 'bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-dark'
+                          }`}
+                        >
+                          {copiedHash ? <Check size={16} /> : <Copy size={16} />}
+                        </button>
                       </div>
 
                       <a 

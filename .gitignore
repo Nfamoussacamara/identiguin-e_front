@@ -23,3 +23,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# IdentiGuinée - Temporary & Docs
+*.md
+!README.md
+cahier_de_charge_admin

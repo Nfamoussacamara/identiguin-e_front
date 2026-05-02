@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, useScroll, useMotionValueEvent } from 'framer-motion';
 import { Shield, Menu, X, ArrowRight } from 'lucide-react';
 import { useMagnetic } from '../../hooks/useMagnetic';
@@ -7,6 +8,11 @@ const Navbar = () => {
   const { scrollY } = useScroll();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Simulation de l'état de connexion pour le frontend
+  const isAuthenticated = !!localStorage.getItem('token') || !!localStorage.getItem('access_token');
+  const isAdmin = localStorage.getItem('is_admin') === 'true';
+  const targetDashboard = isAdmin ? '/admin' : '/dashboard';
   
   const { ref: magRef, position: magPos, handleMouseMove, handleMouseLeave } = useMagnetic(0.3);
 
@@ -82,14 +88,22 @@ const Navbar = () => {
               href="https://stitch.withgoogle.com/preview/4670336962817990775?node-id=b9e984092259499dbd4dc34fbfa2b8d1"
               target="_blank"
               rel="noopener noreferrer"
+              className={`font-body text-sm font-medium transition-colors hover:text-green ${
+                isScrolled ? 'text-text-muted' : 'text-white/80'
+              }`}
+            >
+              Prototype Figma
+            </a>
+            <Link
+              to={isAuthenticated ? targetDashboard : "/login"}
               className={`px-5 py-2.5 rounded-xl font-body font-bold text-sm transition-all flex items-center gap-2 ${
                 isScrolled
                   ? 'bg-green text-white hover:bg-green-dark shadow-md'
                   : 'bg-white text-dark hover:bg-white/90'
               }`}
             >
-              Prototype <ArrowRight className="w-4 h-4" />
-            </a>
+              {isAuthenticated ? "Mon Espace" : "Se connecter"} <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
 
           {/* MOBILE TOGGLE */}
@@ -132,18 +146,25 @@ const Navbar = () => {
             </a>
           ))}
         </nav>
-        <div className="mt-8">
-          <a
-            href="https://stitch.withgoogle.com/preview/4670336962817990775?node-id=b9e984092259499dbd4dc34fbfa2b8d1"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="flex items-center justify-center gap-2 bg-green text-white px-6 py-4 rounded-xl font-body text-lg font-medium shadow-sm w-full"
-          >
-            Voir le prototype interactif
-            <ArrowRight className="w-5 h-5" />
-          </a>
-        </div>
+          <div className="mt-8 space-y-4">
+            <Link
+              to={isAuthenticated ? targetDashboard : "/login"}
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-center gap-2 bg-green text-white px-6 py-4 rounded-xl font-body text-lg font-medium shadow-sm w-full"
+            >
+              {isAuthenticated ? "Mon Espace" : "Se connecter"}
+              <ArrowRight className="w-5 h-5" />
+            </Link>
+            <a
+              href="https://stitch.withgoogle.com/preview/4670336962817990775?node-id=b9e984092259499dbd4dc34fbfa2b8d1"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-center gap-2 bg-gray-100 text-dark px-6 py-4 rounded-xl font-body text-lg font-medium w-full"
+            >
+              Prototype Figma
+            </a>
+          </div>
       </motion.div>
     </>
   );

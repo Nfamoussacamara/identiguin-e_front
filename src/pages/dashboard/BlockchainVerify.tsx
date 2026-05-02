@@ -11,24 +11,26 @@ import {
   ArrowRight,
   ExternalLink,
   Info,
-  FileText
+  FileText,
+  Upload
 } from 'lucide-react';
 import { toast } from 'sonner';
-import client from '@/api/client';
+import { useVerificationHistory } from '@/hooks/useVerificationHistory';
+import { verifyDocument } from '@/api/verification';
+import { useQueryClient } from '@tanstack/react-query';
 import { DashboardCard } from '@/components/dashboard/DashboardCards';
+import Skeleton from '@/components/ui/Skeleton';
+import QRScannerModal from '@/components/dashboard/QRScannerModal';
 
 const BlockchainVerify: React.FC = () => {
   const [hash, setHash] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  // Mock data for recent verifications - could be replaced by a real API call
-  const recentVerifications = [
-    { id: 1, type: 'Certificat de Naissance', ref: 'CN-2026-X89', date: 'Il y a 2 min', status: 'Authentique' },
-    { id: 2, type: 'Carte d\'Identité', ref: 'CI-2025-A12', date: 'Il y a 15 min', status: 'Authentique' },
-    { id: 3, type: 'Passeport Biométrique', ref: 'PB-2024-B45', date: 'Il y a 1 heure', status: 'Authentique' },
-  ];
+  const { data: history, isLoading: historyLoading } = useVerificationHistory();
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,76 +41,101 @@ const BlockchainVerify: React.FC = () => {
     setError(null);
     
     try {
-      const response = await client.get(`/verification/rechercher/?q=${hash}`);
-      setResult(response.data);
+      const data = await verifyDocument(hash);
+      setResult(data);
       toast.success("Document authentifié avec succès sur la blockchain !");
+      // Rafraîchir l'historique après une vérification réussie
+      queryClient.invalidateQueries({ queryKey: ['verification-history'] });
     } catch (err: any) {
       const msg = err.response?.data?.detail || "Erreur lors de la vérification.";
       setError(msg);
       toast.error(msg);
+      // Même en cas d'erreur, on rafraîchit car le log est créé côté backend
+      queryClient.invalidateQueries({ queryKey: ['verification-history'] });
     } finally {
       setIsVerifying(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <div className="flex-grow max-w-4xl mx-auto w-full space-y-12 py-12 px-4">
-        {/* Header Section */}
-        <div className="text-center space-y-6">
-          <motion.div 
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            className="w-20 h-20 bg-green/5 rounded-3xl flex items-center justify-center text-green mx-auto shadow-sm border border-green/10"
-          >
-            <Fingerprint size={40} />
-          </motion.div>
-          <div className="space-y-2">
-            <h1 className="text-3xl md:text-4xl font-display font-black text-dark uppercase tracking-tight">
-              Authentificateur Blockchain
-            </h1>
-            <p className="text-text-muted font-body max-w-lg mx-auto text-sm md:text-base">
-              Saisissez la référence ou le hash d'un document pour vérifier son intégrité sur le réseau <strong className="text-green">NaissanceChain</strong>.
-            </p>
-          </div>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      {/* Header Section Standardisé */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-display font-black text-dark">Authentification Blockchain</h1>
+          <p className="text-text-muted text-sm">Vérifiez l'intégrité de vos documents sur le registre décentralisé NaissanceChain.</p>
         </div>
+      </div>
 
-        {/* Search Section */}
-        <div className="space-y-6">
-          <form onSubmit={handleVerify} className="relative group max-w-2xl mx-auto">
-            <div className="absolute -inset-1 bg-gradient-to-r from-green/20 to-transparent rounded-[26px] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative flex gap-2 p-2 bg-white border border-dashboard-border rounded-admin shadow-xl">
-               <div className="flex-grow relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
-                  <input 
-                    type="text" 
-                    value={hash}
-                    onChange={(e) => setHash(e.target.value)}
-                    placeholder="Ex : 0x71C7656EC7ab88b098defB751B7401B5f6d8976F ..." 
-                    className="w-full pl-12 pr-4 py-4 rounded-xl outline-none font-mono text-xs md:text-sm bg-transparent"
-                  />
-               </div>
-               <button 
-                 type="submit"
-                 disabled={isVerifying}
-                 className="bg-dashboard-sidebar hover:bg-green-700 text-white px-6 md:px-10 rounded-xl font-display font-black transition-all flex items-center gap-2 disabled:opacity-50 shadow-lg shadow-green/20"
-               >
-                  {isVerifying ? <Loader2 className="animate-spin" size={20} /> : 'VÉRIFIER'}
-               </button>
-            </div>
-          </form>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-             <button className="flex items-center justify-center gap-3 p-5 bg-white border border-dashboard-border rounded-admin hover:border-dashboard-sidebar transition-all group shadow-sm">
-                <QrCode size={20} className="text-gray-400 group-hover:text-dashboard-sidebar transition-colors" />
-                <span className="font-display font-bold text-dark text-sm">Scanner un code QR</span>
-             </button>
-             <button className="flex items-center justify-center gap-3 p-5 bg-white border border-dashboard-border rounded-admin hover:border-dashboard-sidebar transition-all group shadow-sm">
-                <ShieldCheck size={20} className="text-gray-400 group-hover:text-dashboard-sidebar transition-colors" />
-                <span className="font-display font-bold text-dark text-sm">Téléverser un PDF</span>
+      {/* Barre de Recherche et Actions */}
+      <div className="space-y-6">
+        <form onSubmit={handleVerify} className="relative group w-full">
+          <div className="relative flex gap-2 p-2 bg-white border border-dashboard-border rounded-admin shadow-sm hover:shadow-md transition-shadow">
+             <div className="flex-grow relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+                <input 
+                  type="text" 
+                  value={hash}
+                  onChange={(e) => setHash(e.target.value)}
+                  placeholder="Saisissez la référence ou le hash du document..." 
+                  className="w-full pl-12 pr-4 py-4 rounded-xl outline-none font-mono text-sm bg-transparent font-bold"
+                />
+             </div>
+             <button 
+               type="submit"
+               disabled={isVerifying}
+               className="bg-dashboard-sidebar hover:bg-dark text-white px-8 rounded-xl font-display font-black transition-all flex items-center gap-2 disabled:opacity-50"
+             >
+                {isVerifying ? <Loader2 className="animate-spin" size={20} /> : (
+                  <>
+                    <ShieldCheck size={20} />
+                    <span>VÉRIFIER</span>
+                  </>
+                )}
              </button>
           </div>
+        </form>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
+           <button 
+            onClick={() => setIsScannerOpen(true)}
+            className="flex items-center justify-center gap-3 p-5 bg-white border border-dashboard-border rounded-admin hover:border-dashboard-sidebar transition-all group shadow-sm"
+           >
+             <div className="p-3 bg-green-light text-green rounded-xl group-hover:scale-110 transition-transform">
+                <QrCode size={24} />
+             </div>
+             <div className="text-left">
+                <p className="text-sm font-black text-dark uppercase tracking-tight">Scanner QR Code</p>
+                <p className="text-[10px] text-text-muted font-bold">Vérification instantanée par caméra</p>
+             </div>
+           </button>
+
+           <label className="flex items-center justify-center gap-3 p-5 bg-white border border-dashboard-border rounded-admin hover:border-dashboard-sidebar transition-all group shadow-sm cursor-pointer">
+             <input type="file" className="hidden" accept=".pdf" />
+             <div className="p-3 bg-dashboard-bg text-dashboard-sidebar rounded-xl group-hover:scale-110 transition-transform">
+                <Upload size={24} />
+             </div>
+             <div className="text-left">
+                <p className="text-sm font-black text-dark uppercase tracking-tight">Téléverser un PDF</p>
+                <p className="text-[10px] text-text-muted font-bold">Analyse de l'empreinte numérique</p>
+             </div>
+           </label>
         </div>
+      </div>
+
+        {/* Modal de Scan */}
+        <QRScannerModal 
+          isOpen={isScannerOpen}
+          onClose={() => setIsScannerOpen(false)}
+          onScanSuccess={(decodedText) => {
+            setHash(decodedText);
+            // On déclenche manuellement la vérification
+            setTimeout(() => {
+              const form = document.querySelector('form');
+              form?.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            }, 100);
+          }}
+        />
 
         {/* Results Section */}
         <AnimatePresence>
@@ -117,7 +144,7 @@ const BlockchainVerify: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="max-w-xl mx-auto w-full pt-4"
+              className="w-full mx-auto pt-4"
             >
               {result ? (
                 <DashboardCard title="Résultat de l'Authentification">
@@ -170,50 +197,127 @@ const BlockchainVerify: React.FC = () => {
         </AnimatePresence>
 
         {/* Recent Verifications Card */}
-        <div className="pt-8">
-          <DashboardCard 
-            title="Vérifications Récentes" 
-          >
-            <div className="divide-y divide-gray-50">
-              {recentVerifications.map((verif) => (
-                <div key={verif.id} className="py-4 flex items-center justify-between group cursor-pointer hover:px-2 transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-green/10 group-hover:text-green transition-colors">
-                      <FileText size={18} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-dark">{verif.type}</p>
-                      <p className="text-[10px] font-mono text-text-muted">{verif.ref}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4 text-right">
-                    <div className="hidden sm:block">
-                      <p className="text-[10px] font-bold text-green uppercase bg-green-50 px-2 py-0.5 rounded-full">{verif.status}</p>
-                      <p className="text-[10px] text-gray-400 mt-1">{verif.date}</p>
-                    </div>
-                    <ArrowRight size={16} className="text-gray-300 group-hover:text-green group-hover:translate-x-1 transition-all" />
-                  </div>
-                </div>
-              ))}
+        <div>
+          <DashboardCard className="!p-0 overflow-hidden">
+            {/* Header Aligné sur MyDocuments */}
+            <div className="px-8 py-5 border-b border-dashboard-border flex items-center justify-between">
+              <h2 className="text-lg font-display font-black text-dark uppercase tracking-tight">
+                Liste des vérifications récentes
+              </h2>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green rounded-full animate-pulse"></div>
+                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Temps Réel</span>
+              </div>
             </div>
-            <button className="w-full mt-4 py-2 text-[11px] font-black uppercase text-text-muted hover:text-green transition-colors tracking-widest border-t border-gray-50 pt-4">
-              Voir tout l'historique
-            </button>
+
+            {/* Table Header - Aligned with MyDocuments */}
+            <div className="hidden lg:grid grid-cols-12 gap-4 px-6 py-4 border-b border-dashboard-border">
+              <div className="col-span-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Référence</div>
+              <div className="col-span-3 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Type de Document</div>
+              <div className="col-span-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Date</div>
+              <div className="col-span-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Statut</div>
+              <div className="col-span-2 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Blockchain</div>
+              <div className="col-span-1 text-[10px] font-bold text-gray-500 uppercase tracking-widest text-right">Actes</div>
+            </div>
+
+            <div className="divide-y divide-gray-50">
+              {historyLoading ? (
+                <div className="space-y-4 p-6">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="grid grid-cols-12 gap-4 items-center">
+                      <div className="col-span-2"><Skeleton className="h-4 w-20" /></div>
+                      <div className="col-span-3 flex items-center gap-3">
+                        <Skeleton variant="circle" className="w-8 h-8" />
+                        <Skeleton className="h-4 w-32" />
+                      </div>
+                      <div className="col-span-2"><Skeleton className="h-4 w-24" /></div>
+                      <div className="col-span-2"><Skeleton className="h-6 w-20 rounded-full" /></div>
+                      <div className="col-span-2"><Skeleton className="h-4 w-28" /></div>
+                      <div className="col-span-1 text-right"><Skeleton className="h-8 w-8 rounded-lg ml-auto" /></div>
+                    </div>
+                  ))}
+                </div>
+              ) : history && history.length > 0 ? (
+                history.map((verif) => (
+                  <div key={verif.id} className="grid grid-cols-1 lg:grid-cols-12 gap-4 px-6 py-5 items-center group cursor-pointer hover:bg-dashboard-bg transition-all">
+                    {/* Référence */}
+                    <div className="col-span-12 lg:col-span-2 overflow-hidden">
+                      <span className="text-[11px] font-mono font-medium text-green-700 bg-green-50 px-2 py-1 rounded block truncate max-w-[140px]" title={verif.document_reference}>
+                        {verif.document_reference}
+                      </span>
+                    </div>
+
+                    {/* Type de Document */}
+                    <div className="col-span-12 lg:col-span-3 flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors shrink-0 ${verif.resultat ? 'bg-green/5 text-green' : 'bg-red-50 text-red-400'}`}>
+                        <FileText size={16} />
+                      </div>
+                      <span className="text-sm font-bold text-dark truncate">
+                        {verif.document_details?.type_document.replace('_', ' ') || 'Inconnu'}
+                      </span>
+                    </div>
+
+                    {/* Date */}
+                    <div className="col-span-6 lg:col-span-2 text-sm text-text-muted font-body">
+                      {new Date(verif.verified_at).toLocaleDateString('fr-FR')}
+                    </div>
+                    
+                    {/* Statut */}
+                    <div className="col-span-6 lg:col-span-2">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                        verif.resultat 
+                          ? 'bg-green-light text-green border-green/20' 
+                          : 'bg-red-light text-red border-red/20'
+                      }`}>
+                        {verif.resultat ? 'Authentique' : 'Inconnu'}
+                      </span>
+                    </div>
+
+                    {/* Blockchain */}
+                    <div className="col-span-6 lg:col-span-2">
+                      <div className="flex items-center gap-2 text-[10px] font-mono text-gray-400">
+                        <span className="truncate w-20">Audit ID: {verif.id}</span>
+                        <div className={`w-2 h-2 rounded-full ${verif.resultat ? 'bg-green animate-pulse' : 'bg-red-400'}`}></div>
+                      </div>
+                    </div>
+
+                    {/* Actes */}
+                    <div className="col-span-6 lg:col-span-1 flex justify-end">
+                      <button className="p-2 hover:bg-white rounded-lg transition-colors text-gray-400 hover:text-green">
+                        <ArrowRight size={18} />
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="py-20 flex flex-col items-center justify-center text-center space-y-4">
+                   <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-200">
+                      <History size={32} />
+                   </div>
+                   <p className="text-text-muted italic text-sm">Aucune vérification enregistrée.</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-gray-50 flex justify-center">
+              <button className="text-[10px] font-black text-green hover:underline uppercase tracking-widest">
+                Voir tout l'historique
+              </button>
+            </div>
           </DashboardCard>
         </div>
-      </div>
 
-      {/* Footer Area Section */}
-      <footer className="w-full py-8 text-center space-y-4 bg-gray-50/50 border-t border-gray-100">
-        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-          © 2026 IdentiGuinée - Portail de l'Innovation
-        </p>
-        <div className="flex items-center justify-center gap-6">
-          <button className="text-[10px] font-black text-gray-400 hover:text-green uppercase transition-colors tracking-widest">Confidentialité</button>
-          <button className="text-[10px] font-black text-gray-400 hover:text-green uppercase transition-colors tracking-widest">Aide</button>
-        </div>
-      </footer>
-    </div>
+        {/* Footer Area Section */}
+        <footer className="w-full py-8 text-center space-y-4 bg-gray-50/50 border-t border-gray-100 mt-12 rounded-admin">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+            © 2026 IdentiGuinée - Portail de l'Innovation
+          </p>
+          <div className="flex items-center justify-center gap-6">
+            <button className="text-[10px] font-black text-gray-400 hover:text-green uppercase transition-colors tracking-widest">Confidentialité</button>
+            <button className="text-[10px] font-black text-gray-400 hover:text-green uppercase transition-colors tracking-widest">Aide</button>
+          </div>
+        </footer>
+      </div>
   );
 };
 

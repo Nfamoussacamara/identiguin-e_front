@@ -31,6 +31,9 @@ const BlockchainVerify = lazy(() => import('./pages/dashboard/BlockchainVerify')
 const Profile = lazy(() => import('./pages/dashboard/Profile'));
 const DocumentDetails = lazy(() => import('./pages/dashboard/DocumentDetails'));
 
+// Admin Pages
+const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
+
 
 const LandingPage = () => (
   <div className="flex flex-col min-h-screen relative overflow-x-hidden bg-bg">
@@ -61,7 +64,7 @@ function App() {
         {isInitializing && <Preloader />}
       </AnimatePresence>
 
-      <Suspense fallback={<div className="h-screen w-screen bg-dashboard-bg flex items-center justify-center font-bold text-dashboard-sidebar">Chargement sécurisé...</div>}>
+      <Suspense fallback={<div className="h-screen w-screen bg-dashboard-bg" />}>
         <Routes>
           {/* Landing Page */}
           <Route path="/" element={<LandingPage />} />
@@ -78,6 +81,16 @@ function App() {
             <Route path="profil" element={<Profile />} />
             <Route path="documents/:reference" element={<DocumentDetails />} />
 
+          </Route>
+
+          {/* Admin Portal */}
+          <Route path="/admin" element={<DashboardLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="demandes" element={<AdminDashboard />} />
+            <Route path="verifications" element={<AdminDashboard />} />
+            <Route path="blockchain" element={<AdminDashboard />} />
+            <Route path="rapports" element={<AdminDashboard />} />
+            <Route path="settings" element={<AdminDashboard />} />
           </Route>
 
           {/* Fallback */}
