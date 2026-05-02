@@ -71,7 +71,7 @@ const DashboardLayout = () => {
         <div className="flex items-center space-x-2 md:space-x-4">
           <button 
             onClick={() => setSidebarOpen(!sidebarOpen)} 
-            className="p-2 hover:bg-gray-50 rounded-lg text-[#23965F] transition-all"
+            className="p-2 hover:bg-gray-50 rounded-lg text-dashboard-sidebar transition-all"
           >
             <Grid size={24} />
           </button>
@@ -83,7 +83,7 @@ const DashboardLayout = () => {
 
         <div className="flex items-center space-x-3 md:space-x-6 text-gray-500">
           <div className="hidden md:flex items-center space-x-4 border-r pr-6 border-gray-100">
-              <button className="hover:text-[#23965F] transition-colors"><Moon size={22} /></button>
+              <button className="hover:text-dashboard-sidebar transition-colors"><Moon size={22} /></button>
           </div>
           
           <button className="flex items-center space-x-2 md:space-x-3 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-3 md:px-4 py-2 rounded-full shadow-sm transition-all">
@@ -94,7 +94,7 @@ const DashboardLayout = () => {
                 </div>
               ) : (
                 <>
-                  <div className="w-8 h-8 bg-[#23965F] text-white rounded-full flex items-center justify-center font-bold text-xs shrink-0">
+                  <div className="w-8 h-8 bg-dashboard-sidebar text-white rounded-full flex items-center justify-center font-bold text-xs shrink-0">
                     {initiales}
                   </div>
                   <span className="text-xs md:text-sm font-bold truncate max-w-[80px] md:max-w-none">
@@ -112,7 +112,7 @@ const DashboardLayout = () => {
         <aside 
           className={`
             fixed lg:relative inset-y-0 left-0 z-[40] lg:z-10
-            bg-[#23965F] flex flex-col shadow-xl 
+            bg-dashboard-sidebar flex flex-col shadow-xl 
             transition-all duration-300 ease-in-out overflow-hidden
             ${sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0 lg:w-0'}
           `}
@@ -171,8 +171,8 @@ const DashboardLayout = () => {
           <footer className="mt-12 pt-6 border-t border-gray-100 flex flex-col md:row gap-4 justify-between items-center text-[10px] text-gray-400 font-medium uppercase tracking-widest text-center">
              <p>© 2026 IdentiGuinée - Portail de l'Innovation</p>
              <div className="flex space-x-6">
-                <a href="#" className="hover:text-[#23965F] transition-colors">Confidentialité</a>
-                <a href="#" className="hover:text-[#23965F] transition-colors">Aide</a>
+                <a href="#" className="hover:text-dashboard-sidebar transition-colors">Confidentialité</a>
+                <a href="#" className="hover:text-dashboard-sidebar transition-colors">Aide</a>
              </div>
           </footer>
         </main>

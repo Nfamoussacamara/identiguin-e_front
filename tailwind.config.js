@@ -32,7 +32,7 @@ export default {
         // --- Isolated Dashboard Tokens (AdminUIUX) ---
         dashboard: {
           bg: '#F8F7F7',
-          sidebar: '#23965F',
+          sidebar: '#008C44',
           card: '#ffffff',
           active: '#ffce00',
           border: '#e9ecef',

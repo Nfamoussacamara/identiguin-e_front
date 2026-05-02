@@ -70,7 +70,7 @@ export const StatusChart = ({ stats }: StatusChartProps) => {
           </BarChart>
         ) : (
           <div className="h-full w-full flex items-center justify-center">
-            <div className="w-8 h-8 border-4 border-gray-100 border-t-[#23965F] rounded-full animate-spin" />
+            <div className="w-8 h-8 border-4 border-gray-100 border-t-dashboard-sidebar rounded-full animate-spin" />
           </div>
         )}
       </div>

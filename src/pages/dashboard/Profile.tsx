@@ -58,7 +58,7 @@ const Profile: React.FC = () => {
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          className="md:col-span-2 bg-[#23965F] rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl shadow-green-900/20"
+          className="md:col-span-2 bg-dashboard-sidebar rounded-admin p-8 text-white relative overflow-hidden shadow-2xl shadow-green-900/20"
         >
           {/* Badge Background */}
           <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>

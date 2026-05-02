@@ -46,7 +46,7 @@ const IdentityCard3D: React.FC<IdentityCard3DProps> = ({ recto, verso, type = "C
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-[550px] mx-auto py-8">
+    <div className="flex flex-col items-start w-full max-w-[550px] py-4">
       <div 
         className="perspective-1000 w-full cursor-pointer"
         onMouseMove={handleMouseMove}
@@ -65,7 +65,7 @@ const IdentityCard3D: React.FC<IdentityCard3DProps> = ({ recto, verso, type = "C
             scale: isHovered ? 1.02 : 1,
           }}
           transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-          className="relative aspect-[1.58/1] w-full bg-white rounded-[1.5rem] md:rounded-[2.5rem] shadow-2xl overflow-visible border border-white/20"
+          className="relative aspect-[1.58/1] w-full bg-white rounded-admin shadow-2xl overflow-visible border border-gray-300"
         >
             {/* FACE RECTO */}
           <div 
@@ -123,24 +123,6 @@ const IdentityCard3D: React.FC<IdentityCard3DProps> = ({ recto, verso, type = "C
             )}
           </div>
         </motion.div>
-      </div>
-
-      {/* Contrôles et indications */}
-      <div className="mt-10 flex flex-col items-center gap-4">
-        <p className="text-sm text-text-muted font-medium flex items-center gap-2">
-            <span className="w-2 h-2 bg-green rounded-full animate-pulse"></span>
-            Aperçu numérique certifié
-        </p>
-        
-        {verso && (
-          <button 
-            onClick={() => setIsFlipped(!isFlipped)}
-            className="flex items-center gap-2 px-6 py-2.5 bg-white border border-dashboard-border rounded-full text-xs font-bold text-dark hover:bg-gray-50 transition-all shadow-sm active:scale-95"
-          >
-            <Rotate3d size={16} className="text-green" />
-            Retourner la carte (Voir le {isFlipped ? 'Recto' : 'Verso'})
-          </button>
-        )}
       </div>
     </div>
   );

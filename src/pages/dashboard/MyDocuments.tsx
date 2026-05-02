@@ -1,14 +1,33 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FileText, Clock, CheckCircle2, XCircle, ExternalLink, Search, Filter, Download } from 'lucide-react';
+import { 
+  FileText, 
+  Clock, 
+  CheckCircle2, 
+  XCircle, 
+  ExternalLink, 
+  Search, 
+  Filter, 
+  ChevronsLeft,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsRight,
+  ChevronDown
+} from 'lucide-react';
 import { useDashboardData } from '@/hooks/useDashboardData';
 import { DashboardCard } from '@/components/dashboard/DashboardCards';
 import Skeleton from '../../components/ui/Skeleton';
 
 const MyDocuments: React.FC = () => {
   const navigate = useNavigate();
-  const { demandes, loading } = useDashboardData();
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  // Fetch data with server-side pagination
+  const { demandes, loading, totalCount } = useDashboardData(currentPage, pageSize);
 
   const getStatusStyle = (status: string) => {
     switch (status.toLowerCase()) {
@@ -41,6 +60,9 @@ const MyDocuments: React.FC = () => {
         return null;
     }
   };
+
+  // Logic for totals
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
     <div className="space-y-8">
@@ -162,6 +184,64 @@ const MyDocuments: React.FC = () => {
             </tbody>
           </table>
         </div>
+
+        {/* PAGINATION (Matching Exactly your Capture) */}
+        {!loading && totalCount > 0 && (
+          <div className="mt-8 flex items-center justify-center gap-6 py-4 border-t border-dashboard-border">
+            <div className="flex items-center gap-4 text-gray-400">
+              <button 
+                onClick={() => setCurrentPage(1)}
+                disabled={currentPage === 1}
+                className="hover:text-green transition-colors disabled:opacity-30"
+              >
+                <ChevronsLeft size={20} strokeWidth={2.5} />
+              </button>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="hover:text-green transition-colors disabled:opacity-30"
+              >
+                <ChevronLeft size={20} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            <div className="w-10 h-10 rounded-full bg-green text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-green/20">
+              {currentPage}
+            </div>
+
+            <div className="flex items-center gap-4 text-gray-400">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="hover:text-green transition-colors disabled:opacity-30"
+              >
+                <ChevronRight size={20} strokeWidth={2.5} />
+              </button>
+              <button 
+                onClick={() => setCurrentPage(totalPages)}
+                disabled={currentPage === totalPages}
+                className="hover:text-green transition-colors disabled:opacity-30"
+              >
+                <ChevronsRight size={20} strokeWidth={2.5} />
+              </button>
+            </div>
+
+            <div className="relative ml-4">
+              <select 
+                value={currentPage}
+                onChange={(e) => {
+                   setCurrentPage(Number(e.target.value));
+                }}
+                className="appearance-none pl-4 pr-10 py-2 border border-dashboard-border rounded-lg text-dark text-sm font-bold focus:outline-none focus:border-green transition-colors cursor-pointer min-w-[60px] text-center"
+              >
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <option key={page} value={page}>{page}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+            </div>
+          </div>
+        )}
       </DashboardCard>
     </div>
   );

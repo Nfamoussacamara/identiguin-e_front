@@ -1,17 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { getDashboardStats, getDemandes } from '@/api/documents';
-import type { IStats, IDemande } from '@/types';
+import type { IStats, IDemande, IPaginatedResponse } from '@/types';
 
 
-export const useDashboardData = () => {
+export const useDashboardData = (page = 1, pageSize = 10) => {
   const { data: stats, isLoading: loadingStats, error: errorStats } = useQuery<IStats>({
     queryKey: ['dashboardStats'],
     queryFn: getDashboardStats,
   });
 
-  const { data: demandes, isLoading: loadingDemandes, error: errorDemandes } = useQuery<IDemande[]>({
-    queryKey: ['dashboardDemandes'],
-    queryFn: getDemandes,
+  const { data: response, isLoading: loadingDemandes, error: errorDemandes } = useQuery<IPaginatedResponse<IDemande>>({
+    queryKey: ['dashboardDemandes', page, pageSize],
+    queryFn: () => getDemandes(page, pageSize),
   });
 
   const loading = loadingStats || loadingDemandes;
@@ -20,7 +20,8 @@ export const useDashboardData = () => {
   return {
     loading,
     stats: stats || { SOUMIS: 0, EN_TRAITEMENT: 0, REJETE: 0, ACCEPTE: 0 },
-    demandes: demandes || [],
+    demandes: response?.results || [],
+    totalCount: response?.count || 0,
     error
   };
 };

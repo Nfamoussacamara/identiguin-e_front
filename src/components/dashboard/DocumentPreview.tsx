@@ -63,7 +63,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ demande, profile }) =
       >
         {/* FACE AVANT (RECTO) */}
         <div className="absolute inset-0 backface-hidden">
-          <div className="w-full h-full bg-[#23965F] rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl">
+          <div className="w-full h-full bg-dashboard-sidebar rounded-admin p-6 text-white relative overflow-hidden shadow-2xl">
             {/* Design Elements */}
             <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-2xl"></div>
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-5 pointer-events-none">
@@ -128,7 +128,7 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ demande, profile }) =
 
         {/* FACE ARRIÈRE (VERSO) */}
         <div className="absolute inset-0 backface-hidden rotate-y-180">
-          <div className="w-full h-full bg-[#1a7047] rounded-[2rem] p-6 text-white relative overflow-hidden shadow-2xl">
+          <div className="w-full h-full bg-dashboard-sidebar brightness-90 rounded-admin p-6 text-white relative overflow-hidden shadow-2xl">
              <div className="absolute inset-0 opacity-10 flex flex-wrap gap-2 p-2 pointer-events-none">
                 {[...Array(20)].map((_, i) => <ShieldCheck key={i} size={40} />)}
              </div>
@@ -159,8 +159,9 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ demande, profile }) =
                 <div className="mt-4 flex gap-2">
                    {/* Simuler une zone MRZ (Machine Readable Zone) */}
                    <div className="bg-black/20 p-2 rounded-lg flex-grow font-mono text-[7px] leading-tight tracking-widest opacity-80 overflow-hidden">
-                      IDGINNOM<profile.nom_complet.split(' ')[0].toUpperCase()><<<<<<<<<<<<<<<<<<<
-                      {demande.reference.replace(/-/g, '')}<<<<<<{profile.date_naissance?.replace(/-/g, '') || '000000'}<<<<<<<<<<<<<<<
+                      IDGINNOM{profile.nom_complet.split(' ')[0].toUpperCase()}{"<<<<<<<<<<<<<<<<<<<"}
+                      <br />
+                      {demande.reference.replace(/-/g, '')}{"<<<<<<"}{profile.date_naissance?.replace(/-/g, '') || '000000'}{"<<<<<<<<<<<<<<<"}
                    </div>
                 </div>
 

@@ -4,12 +4,14 @@
  * Les types sont importés depuis @/types.
  */
 import client from './client';
-import type { IDemande, IStats, IProfile } from '@/types';
+import type { IDemande, IStats, IProfile, IPaginatedResponse } from '@/types';
 
 export type { IDemande, IStats, IProfile };
 
-export const getDemandes = async (): Promise<IDemande[]> => {
-  const response = await client.get<IDemande[]>('/demandes/');
+export const getDemandes = async (page = 1, pageSize = 10): Promise<IPaginatedResponse<IDemande>> => {
+  const response = await client.get<IPaginatedResponse<IDemande>>('/demandes/', {
+    params: { page, page_size: pageSize }
+  });
   return response.data;
 };
 

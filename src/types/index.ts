@@ -51,6 +51,13 @@ export interface IDemande {
   updated_at: string;
 }
 
+export interface IPaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
 export interface IStats {
   SOUMIS: number;
   EN_TRAITEMENT: number;
