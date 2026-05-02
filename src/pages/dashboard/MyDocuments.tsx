@@ -6,7 +6,7 @@ import {
   Clock, 
   CheckCircle2, 
   XCircle, 
-  ExternalLink, 
+  Eye, 
   Search, 
   Filter, 
   ChevronsLeft,
@@ -163,7 +163,7 @@ const MyDocuments: React.FC = () => {
                           className="p-2 text-gray-400 hover:text-green transition-colors"
                           title="Voir les détails"
                         >
-                          <ExternalLink size={18} />
+                          <Eye size={18} />
                         </button>
                       </div>
                     </td>
