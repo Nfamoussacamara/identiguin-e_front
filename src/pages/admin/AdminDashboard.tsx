@@ -1,42 +1,47 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { DashboardCard } from '../../components/dashboard/DashboardCards';
 import { BanniereStatut, FeedNaissanceChain } from '../../components/admin/AdminComponents';
 import { ArrowRight, Activity, Globe } from 'lucide-react';
 import Skeleton from '../../components/ui/Skeleton';
-
-// ── Données simulées ──────────────────────────────────────────────────────────
-const MOCK_DEMANDES = [
-  { id: 'REQ-2026-E77A12', type: 'Extrait',    statut: 'TRAITÉ',   hash: '0x3f9a...d42c', duree: '1 min 47s', heure: '14:32:07' },
-  { id: 'REQ-2026-B82C45', type: 'CNI',        statut: 'TRAITÉ',   hash: '0xa2b4...e8f1', duree: '2 min 12s', heure: '14:31:15' },
-  { id: 'REQ-2026-F91D22', type: 'Passeport',  statut: 'EN COURS', hash: '0x7c1d...b3a9', duree: '---',       heure: '14:33:45' },
-  { id: 'REQ-2026-K12L90', type: 'Extrait',    statut: 'TRAITÉ',   hash: '0x9e5f...c2d0', duree: '1 min 55s', heure: '14:28:30' },
-  { id: 'REQ-2026-Z44P11', type: 'Certificat', statut: 'REJETÉ',   hash: '0x1b2e...a4f6', duree: '0 min 42s', heure: '14:25:12' },
-];
+import { getAdminStats, getAdminDemandes } from '../../api/admin';
 
 const STATUT_STYLE: Record<string, string> = {
-  'TRAITÉ':   'bg-[#009A44]/10 text-[#009A44]',
-  'EN COURS': 'bg-[#FCD116]/10 text-[#FCD116]',
-  'REJETÉ':   'bg-[#CE1126]/10 text-[#CE1126]',
+  'PRET':   'bg-[#009A44]/10 text-[#009A44]',
+  'TRAITE':   'bg-[#009A44]/10 text-[#009A44]',
+  'VERIFICATION': 'bg-[#FCD116]/10 text-[#FCD116]',
+  'SIGNATURE': 'bg-[#FCD116]/10 text-[#FCD116]',
+  'RECUE': 'bg-[#FCD116]/10 text-[#FCD116]',
+  'REJETE':   'bg-[#CE1126]/10 text-[#CE1126]',
+};
+
+const STATUT_LABEL: Record<string, string> = {
+  'PRET': 'TRAITÉ',
+  'TRAITE': 'TRAITÉ',
+  'VERIFICATION': 'EN COURS',
+  'SIGNATURE': 'EN COURS',
+  'RECUE': 'EN COURS',
+  'REJETE': 'REJETÉ',
 };
 
 // ── Composant principal ───────────────────────────────────────────────────────
 const AdminDashboard: React.FC = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [demandesCount, setDemandesCount] = useState(247);
+  // Récupération des stats globales
+  const { data: stats, isLoading: isStatsLoading } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: getAdminStats,
+    refetchInterval: 10000, // Refresh toutes les 10s
+  });
 
-  // Simule le chargement initial
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
+  // Récupération des demandes récentes
+  const { data: demandesData, isLoading: isDemandesLoading } = useQuery({
+    queryKey: ['admin-demandes'],
+    queryFn: () => getAdminDemandes(1, 6),
+    refetchInterval: 10000,
+  });
 
-  // Simule l'incrémentation du compteur de demandes toutes les 30s
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setDemandesCount(prev => prev + Math.floor(Math.random() * 3 + 1));
-    }, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  const isLoading = isStatsLoading || isDemandesLoading;
+  const demandesCount = stats?.total_demandes || 0;
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -49,51 +54,59 @@ const AdminDashboard: React.FC = () => {
 
       {/* ── ZONE 2 : 4 KPI Cards ────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <DashboardCard
-          title="Interventions manuelles"
-          value="0"
-          valueColor="#CE1126"
-          sublabel="= Zéro corruption possible"
-          sublabelColor="#009A44"
-          loading={isLoading}
-        />
-        <DashboardCard
-          title="Demandes aujourd'hui"
-          value={demandesCount}
-          valueColor="#009A44"
-          sublabel="↑ +12% vs hier"
-          loading={isLoading}
-        />
-        <DashboardCard
-          title="Délai moyen"
-          value="2 min 14s"
-          valueColor="#FCD116"
-          sublabel="Objectif < 3 min ✅"
-          loading={isLoading}
-        />
-        <DashboardCard
-          title="Taux automatisation"
-          value="100%"
-          valueColor="#009A44"
-          sublabel="Aucune action humaine"
-          loading={isLoading}
-        />
+        <div className="animate-in fade-in zoom-in duration-500 delay-75 fill-mode-both">
+          <DashboardCard
+            title="Interventions manuelles"
+            value={stats?.interventions_manuelles ?? 0}
+            valueColor="#CE1126"
+            sublabel="= Zéro corruption possible"
+            sublabelColor="#009A44"
+            loading={isLoading}
+          />
+        </div>
+        <div className="animate-in fade-in zoom-in duration-500 delay-150 fill-mode-both">
+          <DashboardCard
+            title="Demandes aujourd'hui"
+            value={demandesCount}
+            valueColor="#009A44"
+            sublabel={stats ? "Données réelles" : "Chargement..."}
+            loading={isLoading}
+          />
+        </div>
+        <div className="animate-in fade-in zoom-in duration-500 delay-200 fill-mode-both">
+          <DashboardCard
+            title="Délai moyen"
+            value="---"
+            valueColor="#FCD116"
+            sublabel="Calcul en cours"
+            loading={isLoading}
+          />
+        </div>
+        <div className="animate-in fade-in zoom-in duration-500 delay-300 fill-mode-both">
+          <DashboardCard
+            title="Taux automatisation"
+            value={`${stats?.taux_automatisation ?? 100}%`}
+            valueColor="#009A44"
+            sublabel="Aucune action humaine"
+            loading={isLoading}
+          />
+        </div>
       </div>
 
       {/* ── ZONE 3 : Table (65%) + Feed NaissanceChain (35%) ────── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Table demandes */}
         <div className="lg:col-span-2">
-          <DashboardCard className="h-[450px] flex flex-col">
-            <div className="flex items-center justify-between mb-4 shrink-0">
-              <h3 className="text-sm font-black text-dark uppercase tracking-tight">Demandes récentes</h3>
-              <button className="text-[10px] font-black text-[#009A44] uppercase tracking-widest flex items-center gap-1 hover:underline">
-                Voir tout <ArrowRight size={12} />
+          <DashboardCard className="h-[480px] flex flex-col p-6">
+            <div className="flex items-center justify-between mb-6 shrink-0">
+              <h3 className="text-xs font-black text-dark uppercase tracking-widest">Demandes récentes</h3>
+              <button className="text-[10px] font-black text-[#009A44] uppercase tracking-widest flex items-center gap-2 hover:underline transition-all">
+                Voir tout <ArrowRight size={14} />
               </button>
             </div>
 
             {isLoading ? (
-              <div className="space-y-3 flex-1 overflow-y-auto pr-2">
+              <div className="space-y-4 flex-1 overflow-hidden">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="flex gap-4 items-center">
                     <Skeleton className="h-4 w-32 rounded" />
@@ -109,29 +122,32 @@ const AdminDashboard: React.FC = () => {
                 <table className="w-full text-left relative">
                   <thead className="sticky top-0 bg-white z-10">
                     <tr className="border-b border-dashboard-border">
-                      {['Référence', 'Type', 'Statut', 'Hash Blockchain', 'Durée', 'Heure'].map(h => (
+                      {['Référence', 'Type', 'Statut', 'Hash Blockchain', 'Date'].map(h => (
                         <th key={h} className="px-3 py-3 text-[9px] font-black text-gray-400 uppercase tracking-widest whitespace-nowrap bg-white">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-dashboard-border/50">
-                    {MOCK_DEMANDES.map((req) => (
-                      <tr key={req.id} className="hover:bg-gray-50/70 transition-colors group">
-                        <td className="px-3 py-3.5 text-[11px] font-mono font-bold text-dark whitespace-nowrap">{req.id}</td>
+                    {demandesData?.results.map((req) => (
+                      <tr key={req.reference} className="hover:bg-gray-50/70 transition-colors group">
+                        <td className="px-3 py-3.5 text-[11px] font-mono font-bold text-[#1A2E1F] whitespace-nowrap">{req.reference.substring(0, 12)}...</td>
                         <td className="px-3 py-3.5">
-                          <span className="text-[9px] font-black px-2 py-1 bg-gray-100 rounded-md uppercase tracking-tight">{req.type}</span>
+                          <span className="text-[9px] font-black px-2 py-1 bg-gray-100 rounded-md uppercase tracking-tight">{req.type_document}</span>
                         </td>
                         <td className="px-3 py-3.5">
                           <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest inline-flex items-center gap-1.5 ${STATUT_STYLE[req.statut]}`}>
-                            {req.statut === 'EN COURS' && (
+                            {['VERIFICATION', 'SIGNATURE', 'RECUE'].includes(req.statut) && (
                               <span className="w-1.5 h-1.5 bg-[#FCD116] rounded-full animate-pulse" />
                             )}
-                            {req.statut}
+                            {STATUT_LABEL[req.statut] || req.statut}
                           </span>
                         </td>
-                        <td className="px-3 py-3.5 text-[10px] font-mono text-gray-400">{req.hash}</td>
-                        <td className="px-3 py-3.5 text-[11px] font-bold text-dark">{req.duree}</td>
-                        <td className="px-3 py-3.5 text-[10px] font-mono text-gray-400">{req.heure}</td>
+                        <td className={`px-3 py-3.5 text-[10px] font-mono ${req.blockchain_tx_hash ? 'text-[#009A44] font-bold' : 'text-gray-400'}`}>
+                          {req.blockchain_tx_hash ? `${req.blockchain_tx_hash.substring(0, 10)}...` : '---'}
+                        </td>
+                        <td className="px-3 py-3.5 text-[10px] font-mono text-gray-400">
+                          {new Intl.DateTimeFormat('fr-GN', { hour: '2-digit', minute: '2-digit' }).format(new Date(req.created_at))}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -143,7 +159,7 @@ const AdminDashboard: React.FC = () => {
 
         {/* Feed NaissanceChain */}
         <div className="lg:col-span-1">
-          <DashboardCard className="h-[450px] flex flex-col">
+          <DashboardCard className="h-[480px] flex flex-col p-6">
             {isLoading ? (
               <div className="space-y-4">
                 <Skeleton className="h-4 w-40" />
@@ -170,33 +186,27 @@ const AdminDashboard: React.FC = () => {
       {isLoading
         ? <Skeleton className="h-64 w-full rounded-admin" />
         : (
-          <DashboardCard title="Activité de Traitement (24h) — Zéro Intervention Humaine">
-            <div className="h-52 flex items-end gap-0.5 px-2">
-              {[...Array(48)].map((_, i) => {
-                const height = Math.random() * 70 + 20;
-                const isNow = i === 28;
+          <DashboardCard title="Activité de Traitement — Données Réelles">
+            <div className="h-52 flex items-end gap-1 px-4">
+              {/* On affiche une barre par type de document pour montrer l'activité réelle */}
+              {stats && Object.entries(stats.stats_type).map(([label, count], i) => {
+                const height = (count / (stats.total_demandes || 1)) * 100;
                 return (
-                  <div
-                    key={i}
-                    className={`relative flex-1 rounded-t-sm transition-all group cursor-pointer ${
-                      isNow ? 'bg-[#009A44]' : 'bg-[#009A44]/15 hover:bg-[#009A44]/50'
-                    }`}
-                    style={{ height: `${height}%` }}
-                  >
-                    {isNow && (
-                      <div className="absolute -top-5 left-1/2 -translate-x-1/2">
-                        <span className="w-2 h-2 bg-[#009A44] rounded-full block animate-pulse" />
+                  <div key={label} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+                    <div className="relative w-full bg-[#009A44]/20 rounded-t-lg transition-all hover:bg-[#009A44]/40" style={{ height: `${height}%` }}>
+                       <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-[#1A2E1F] text-white text-[9px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
+                        {count} demandes
                       </div>
-                    )}
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-dark text-white text-[8px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-10">
-                      {Math.round(height / 5)} req.
                     </div>
+                    <span className="text-[8px] font-black text-gray-400 uppercase tracking-tighter">{label}</span>
                   </div>
                 );
               })}
-            </div>
-            <div className="flex justify-between mt-3 text-[9px] font-black text-gray-400 uppercase tracking-widest">
-              {['00h', '06h', '12h', '18h', '23h'].map(t => <span key={t}>{t}</span>)}
+              {(!stats || Object.keys(stats.stats_type).length === 0) && (
+                <div className="w-full h-full flex items-center justify-center border-2 border-dashed border-gray-100 rounded-xl">
+                  <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Aucune donnée d'activité</p>
+                </div>
+              )}
             </div>
           </DashboardCard>
         )
@@ -207,22 +217,29 @@ const AdminDashboard: React.FC = () => {
         {/* Répartition documents */}
         <DashboardCard title="Répartition des documents" loading={isLoading}>
           <div className="space-y-5">
-            {[
-              { label: 'CNI Biométrique',     pct: 45, color: '#009A44' },
-              { label: 'Extrait de Naissance', pct: 35, color: '#FCD116' },
-              { label: 'Passeport',            pct: 15, color: '#CE1126' },
-              { label: 'Certificat Résidence', pct: 5,  color: '#5A7A62' },
-            ].map(({ label, pct, color }) => (
-              <div key={label}>
-                <div className="flex justify-between mb-1.5">
-                  <span className="text-[10px] font-bold text-dark">{label}</span>
-                  <span className="text-[10px] font-black" style={{ color }}>{pct}%</span>
+            {stats && Object.entries(stats.stats_type).length > 0 ? Object.entries(stats.stats_type).map(([label, count]) => {
+              const pct = Math.round((count / (stats.total_demandes || 1)) * 100);
+              const colors: Record<string, string> = {
+                'CNI': '#009A44',
+                'EXTRAIT': '#FCD116',
+                'PASSEPORT': '#CE1126',
+                'CERTIFICAT': '#5A7A62'
+              };
+              const color = colors[label] || '#009A44';
+              return (
+                <div key={label}>
+                  <div className="flex justify-between mb-1.5">
+                    <span className="text-[10px] font-bold text-[#1A2E1F]">{label}</span>
+                    <span className="text-[10px] font-black" style={{ color }}>{pct}%</span>
+                  </div>
+                  <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: color }} />
+                  </div>
                 </div>
-                <div className="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${pct}%`, backgroundColor: color }} />
-                </div>
-              </div>
-            ))}
+              );
+            }) : (
+              <p className="text-[10px] text-gray-400 italic py-4 text-center">Aucun document émis</p>
+            )}
           </div>
         </DashboardCard>
 
@@ -231,18 +248,20 @@ const AdminDashboard: React.FC = () => {
           <div className="flex flex-col items-center justify-center py-2">
             <div
               className="w-28 h-28 rounded-full flex items-center justify-center mb-4 relative"
-              style={{ background: `conic-gradient(#009A44 0% 98%, #CE1126 98% 100%)` }}
+              style={{ background: `conic-gradient(#009A44 0% ${stats?.total_verifications ? '100%' : '0%'}, #f3f4f6 ${stats?.total_verifications ? '100%' : '0%'} 100%)` }}
             >
               <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center">
                 <div className="text-center">
-                  <p className="text-2xl font-black text-dark leading-none">98%</p>
-                  <p className="text-[8px] text-gray-400 uppercase font-black">Auth.</p>
+                  <p className="text-2xl font-black text-[#1A2E1F] leading-none">{stats?.total_verifications || 0}</p>
+                  <p className="text-[8px] text-gray-400 uppercase font-black">Total</p>
                 </div>
               </div>
             </div>
-            <p className="text-[10px] font-black text-[#009A44] uppercase tracking-widest">Authenticité garantie</p>
+            <p className="text-[10px] font-black text-[#009A44] uppercase tracking-widest">
+              {stats?.total_verifications ? 'Système Audité' : 'En attente de scan'}
+            </p>
             <p className="text-[10px] font-bold text-[#CE1126] uppercase tracking-tight mt-2 flex items-center gap-1">
-              <span className="w-1.5 h-1.5 bg-[#CE1126] rounded-full" /> Fraude détectée : 0
+              <span className="w-1.5 h-1.5 bg-[#CE1126] rounded-full" /> Fraude détectée : {stats?.interventions_manuelles || 0}
             </p>
           </div>
         </DashboardCard>
@@ -255,9 +274,9 @@ const AdminDashboard: React.FC = () => {
                 <Globe size={20} />
               </div>
               <div>
-                <p className="text-[10px] font-black text-dark uppercase tracking-tight">ODD 16 — Justice & Paix</p>
+                <p className="text-[10px] font-black text-[#1A2E1F] uppercase tracking-tight">ODD 16 — Justice & Paix</p>
                 <p className="text-[10px] text-gray-500 font-medium mt-0.5 leading-relaxed">
-                  <span className="font-black text-[#CE1126]">0</span> pot-de-vin possible — système 100% automatisé.
+                  <span className="font-black text-[#CE1126]">{stats?.interventions_manuelles || 0}</span> intervention manuelle — système inviolable.
                 </p>
               </div>
             </div>
@@ -266,9 +285,9 @@ const AdminDashboard: React.FC = () => {
                 <Activity size={20} />
               </div>
               <div>
-                <p className="text-[10px] font-black text-dark uppercase tracking-tight">ODD 10 — Réduction Inégalités</p>
+                <p className="text-[10px] font-black text-[#1A2E1F] uppercase tracking-tight">ODD 10 — Réduction Inégalités</p>
                 <p className="text-[10px] text-gray-500 font-medium mt-0.5 leading-relaxed">
-                  <span className="font-black text-[#009A44]">{demandesCount}</span> citoyens ont accédé à leurs droits aujourd'hui.
+                  <span className="font-black text-[#009A44]">{demandesCount}</span> citoyens ont accédé à leurs droits.
                 </p>
               </div>
             </div>

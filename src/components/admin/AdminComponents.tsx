@@ -1,19 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ShieldCheck, Activity, Database, Cpu, Terminal as TerminalIcon, CheckCircle, Clock } from 'lucide-react';
 import { DashboardCard } from '../dashboard/DashboardCards';
+import { getSystemStatus } from '../../api/admin';
 
 /**
  * Zone 1 — Bannière statut système
  */
 export const BanniereStatut: React.FC = () => {
-  const [blockNumber, setBlockNumber] = useState(48291);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBlockNumber(prev => prev + 1);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
+  const { data: status } = useQuery({
+    queryKey: ['system-status'],
+    queryFn: getSystemStatus,
+    refetchInterval: 5000,
+  });
 
   return (
     <div className="w-full bg-[#F0FAF5] border-l-4 border-[#009A44] p-4 flex items-center justify-between shadow-sm animate-in fade-in slide-in-from-top duration-500">
@@ -23,17 +22,19 @@ export const BanniereStatut: React.FC = () => {
         </div>
         <div>
           <p className="text-sm font-black text-[#1A2E1F] uppercase tracking-tight">Système 100% automatisé</p>
-          <p className="text-[10px] text-[#5A7A62] font-bold uppercase tracking-widest">Aucune intervention humaine requise — Disponibilité 99.9%</p>
+          <p className="text-[10px] text-[#5A7A62] font-bold uppercase tracking-widest">Aucune intervention humaine requise — Disponibilité {status?.system_availability || '99.9%'}</p>
         </div>
       </div>
       <div className="flex items-center gap-6">
         <div className="text-right">
           <p className="text-[10px] text-[#5A7A62] font-black uppercase tracking-widest">NaissanceChain</p>
-          <p className="text-sm font-mono font-black text-[#009A44]">Bloc #{blockNumber}</p>
+          <p className="text-sm font-mono font-black text-[#009A44]">Bloc #{status?.current_block || '---'}</p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1 bg-[#009A44]/10 rounded-full">
-          <span className="w-2 h-2 bg-[#009A44] rounded-full animate-pulse" />
-          <span className="text-[10px] font-black text-[#009A44] uppercase tracking-widest text-center">Live</span>
+          <span className={`w-2 h-2 rounded-full animate-pulse ${status?.blockchain_status === 'CONNECTED' ? 'bg-[#009A44]' : 'bg-red-500'}`} />
+          <span className="text-[10px] font-black text-[#009A44] uppercase tracking-widest text-center">
+            {status?.blockchain_status === 'CONNECTED' ? 'Live' : 'Offline'}
+          </span>
         </div>
       </div>
     </div>
@@ -44,56 +45,55 @@ export const BanniereStatut: React.FC = () => {
  * Zone 3 (Droite) — Feed NaissanceChain en direct
  */
 export const FeedNaissanceChain: React.FC = () => {
-  const [events, setEvents] = useState([
-    { id: 1, type: 'Vérification identité', hash: '0x3f9a...d42c', time: 'À l\'instant', color: '#009A44' },
-    { id: 2, type: 'Génération document CNI', hash: '0xa2b4...e8f1', time: 'Il y a 12s', color: '#1A2E1F' },
-    { id: 3, type: 'Certification acte naissance', hash: '0x7c1d...b3a9', time: 'Il y a 45s', color: '#009A44' },
-    { id: 4, type: 'Enregistrement NPI', hash: '0x9e5f...c2d0', time: 'Il y a 1 min', color: '#009A44' },
-  ]);
+  const { data: status } = useQuery({
+    queryKey: ['system-status'],
+    queryFn: getSystemStatus,
+    refetchInterval: 5000,
+  });
 
-  useEffect(() => {
-    const types = [
-      { name: 'Vérification identité', color: '#009A44' },
-      { name: 'Génération document CNI', color: '#1A2E1F' },
-      { name: 'Certification acte naissance', color: '#009A44' },
-      { name: 'Vérification QR code', color: '#FCD116' },
-      { name: 'Enregistrement NPI', color: '#009A44' }
-    ];
+  const { data: demandesData } = useQuery({
+    queryKey: ['admin-demandes-feed'],
+    queryFn: () => import('../../api/admin').then(m => m.getAdminDemandes(1, 10)),
+    refetchInterval: 10000,
+  });
 
-    const interval = setInterval(() => {
-      const newType = types[Math.floor(Math.random() * types.length)];
-      const newHash = `0x${Math.random().toString(16).substring(2, 6)}...${Math.random().toString(16).substring(2, 6)}`;
-      
-      setEvents(prev => [
-        { id: Date.now(), type: newType.name, hash: newHash, time: 'À l\'instant', color: newType.color },
-        ...prev.slice(0, 7)
-      ]);
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const events = demandesData?.results.map(req => ({
+    id: req.id,
+    type: req.type_document === 'CNI' ? 'Génération document CNI' : 
+          req.type_document === 'EXTRAIT' ? 'Certification acte naissance' :
+          `Traitement ${req.type_document}`,
+    hash: req.blockchain_tx_hash || 'En attente...',
+    time: new Intl.DateTimeFormat('fr-GN', { hour: '2-digit', minute: '2-digit' }).format(new Date(req.created_at)),
+    color: req.blockchain_tx_hash ? '#009A44' : '#FCD116'
+  })) || [];
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4 shrink-0">
-        <h3 className="text-sm font-black text-dark uppercase tracking-tight">NaissanceChain en direct</h3>
+      <div className="flex items-center justify-between mb-6 shrink-0">
+        <h3 className="text-xs font-black text-dark uppercase tracking-widest">NaissanceChain en direct</h3>
         <span className="w-2 h-2 bg-[#009A44] rounded-full animate-ping" />
       </div>
-      <div className="space-y-3 flex-1 overflow-y-auto pr-2 relative">
-        {events.map((event) => (
+      <div className="space-y-4 flex-1 overflow-y-auto pr-2 relative">
+        {events.length > 0 ? events.map((event) => (
           <div 
             key={event.id}
-            className="bg-gray-50/50 border border-dashboard-border rounded-xl p-3 shadow-sm flex items-center gap-3 transition-all animate-in slide-in-from-top duration-500"
+            className="bg-gray-50/30 border border-dashboard-border/50 rounded-xl p-4 shadow-sm flex items-center gap-3 transition-all animate-in slide-in-from-right duration-500"
           >
             <div className="flex-grow">
-              <div className="flex justify-between items-start mb-1">
-                <p className="text-[11px] font-black text-dark uppercase tracking-tight">{event.type}</p>
-                <span className="text-[9px] text-gray-400 font-bold">{event.time}</span>
+              <div className="flex justify-between items-start mb-2">
+                <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wide">{event.type}</p>
+                <span className="text-[9px] text-gray-400 font-medium">{event.time}</span>
               </div>
-              <p className="text-[10px] font-mono text-[#5A7A62]">{event.hash}</p>
+              <p className="text-[10px] font-mono text-gray-400 truncate max-w-[200px]">{event.hash}</p>
             </div>
           </div>
-        ))}
+        )) : (
+          <div className="h-full flex items-center justify-center border-2 border-dashed border-gray-100 rounded-xl p-6 text-center">
+             <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest leading-loose">
+               Aucune activité<br/>blockchain enregistrée
+             </p>
+          </div>
+        )}
       </div>
     </div>
   );
