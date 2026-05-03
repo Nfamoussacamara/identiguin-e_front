@@ -2,9 +2,11 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { DashboardCard } from '../../components/dashboard/DashboardCards';
 import { BanniereStatut, FeedNaissanceChain } from '../../components/admin/AdminComponents';
-import { ArrowRight, Activity, Globe } from 'lucide-react';
+import { ArrowRight, Activity, Globe, Search, Filter } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Skeleton from '../../components/ui/Skeleton';
 import { getAdminStats, getAdminDemandes } from '../../api/admin';
+import { useAdminWebSocket } from '../../hooks/useAdminWebSocket';
 
 const STATUT_STYLE: Record<string, string> = {
   'PRET':   'bg-[#009A44]/10 text-[#009A44]',
@@ -26,18 +28,24 @@ const STATUT_LABEL: Record<string, string> = {
 
 // ── Composant principal ───────────────────────────────────────────────────────
 const AdminDashboard: React.FC = () => {
+  const [searchTerm, setSearchTerm] = React.useState('');
+  const [selectedType, setSelectedType] = React.useState('');
+
+  // Activation du temps réel (Zéro Intervention Humaine — Surveillance Live)
+  useAdminWebSocket();
+
   // Récupération des stats globales
   const { data: stats, isLoading: isStatsLoading } = useQuery({
     queryKey: ['admin-stats'],
     queryFn: getAdminStats,
-    refetchInterval: 10000, // Refresh toutes les 10s
+    refetchInterval: 60000,
   });
 
-  // Récupération des demandes récentes
+  // Récupération des demandes avec filtres dynamiques
   const { data: demandesData, isLoading: isDemandesLoading } = useQuery({
-    queryKey: ['admin-demandes'],
-    queryFn: () => getAdminDemandes(1, 6),
-    refetchInterval: 10000,
+    queryKey: ['admin-demandes', searchTerm, selectedType],
+    queryFn: () => getAdminDemandes(1, 6, searchTerm, selectedType),
+    refetchInterval: 60000,
   });
 
   const isLoading = isStatsLoading || isDemandesLoading;
@@ -98,11 +106,48 @@ const AdminDashboard: React.FC = () => {
         {/* Table demandes */}
         <div className="lg:col-span-2">
           <DashboardCard className="h-[480px] flex flex-col p-6">
-            <div className="flex items-center justify-between mb-6 shrink-0">
-              <h3 className="text-xs font-black text-dark uppercase tracking-widest">Demandes récentes</h3>
-              <button className="text-[10px] font-black text-[#009A44] uppercase tracking-widest flex items-center gap-2 hover:underline transition-all">
-                Voir tout <ArrowRight size={14} />
-              </button>
+            <div className="flex flex-col gap-4 mb-6 shrink-0">
+              <div className="flex items-center justify-between">
+                <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Demandes & Audits</h3>
+                <div className="flex items-center gap-3">
+                  <div className="relative group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#009A44] transition-colors" size={14} />
+                    <input 
+                      type="text"
+                      placeholder="Rechercher (Réf, Nom...)"
+                      className="pl-9 pr-4 py-2 bg-gray-50 border border-gray-100 rounded-lg text-[10px] font-bold focus:outline-none focus:ring-1 focus:ring-[#009A44] focus:bg-white transition-all w-48 md:w-64"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <button className="text-[10px] font-black text-[#009A44] uppercase tracking-widest flex items-center gap-2 hover:underline transition-all">
+                    Voir tout <ArrowRight size={14} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Badges de filtrage */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                <Filter size={12} className="text-gray-400 mr-1" />
+                {[
+                  { id: '', label: 'Toutes' },
+                  { id: 'CNI', label: 'CNI' },
+                  { id: 'EXTRAIT', label: 'Extraits' },
+                  { id: 'PASSEPORT', label: 'Passeports' }
+                ].map((f) => (
+                  <button
+                    key={f.id}
+                    onClick={() => setSelectedType(f.id)}
+                    className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${
+                      selectedType === f.id 
+                        ? 'bg-[#009A44] text-white shadow-sm' 
+                        : 'bg-gray-100 text-gray-400 hover:bg-gray-200'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {isLoading ? (

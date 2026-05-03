@@ -74,20 +74,42 @@ export const FeedNaissanceChain: React.FC = () => {
         <span className="w-2 h-2 bg-[#009A44] rounded-full animate-ping" />
       </div>
       <div className="space-y-4 flex-1 overflow-y-auto pr-2 relative">
-        {events.length > 0 ? events.map((event) => (
-          <div 
-            key={event.id}
-            className="bg-gray-50/30 border border-dashboard-border/50 rounded-xl p-4 shadow-sm flex items-center gap-3 transition-all animate-in slide-in-from-right duration-500"
-          >
-            <div className="flex-grow">
-              <div className="flex justify-between items-start mb-2">
-                <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wide">{event.type}</p>
-                <span className="text-[9px] text-gray-400 font-medium">{event.time}</span>
+        {events.length > 0 ? events.map((event, index) => {
+          // Déterminer si c'est une nouvelle notification (très récente : moins de 15 secondes)
+          const eventDate = new Date();
+          const [hours, minutes] = event.time.split(':').map(Number);
+          eventDate.setHours(hours, minutes, 0, 0);
+          const isRecent = (new Date().getTime() - eventDate.getTime()) < 15000;
+          const isNewest = index === 0 && isRecent;
+
+          return (
+            <div 
+              key={event.id}
+              className={`bg-gray-50/30 border border-dashboard-border/50 rounded-xl p-4 shadow-sm flex items-center gap-3 transition-all animate-in slide-in-from-right duration-500 ${isNewest ? 'new-notification-glow ring-2 ring-green/20' : ''}`}
+            >
+              <div className="flex-grow">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-[10px] font-bold text-gray-600 uppercase tracking-wide">{event.type}</p>
+                    {isNewest && (
+                      <span className="flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green"></span>
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-[9px] text-gray-400 font-medium">{event.time}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                   <p className="text-[10px] font-mono text-gray-400 truncate max-w-[150px]">{event.hash}</p>
+                   <span className={`text-[8px] font-black uppercase tracking-tighter px-2 py-0.5 rounded ${event.hash === 'En attente...' ? 'bg-yellow/10 text-yellow' : 'bg-green/10 text-green'}`}>
+                     {event.hash === 'En attente...' ? 'En cours' : 'Sécurisé'}
+                   </span>
+                </div>
               </div>
-              <p className="text-[10px] font-mono text-gray-400 truncate max-w-[200px]">{event.hash}</p>
             </div>
-          </div>
-        )) : (
+          );
+        }) : (
           <div className="h-full flex items-center justify-center border-2 border-dashed border-gray-100 rounded-xl p-6 text-center">
              <p className="text-[10px] font-black text-gray-300 uppercase tracking-widest leading-loose">
                Aucune activité<br/>blockchain enregistrée

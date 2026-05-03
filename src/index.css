@@ -105,6 +105,7 @@
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
+/* Hide scrollbar for Chrome, Safari and Opera */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -113,4 +114,16 @@
 .no-scrollbar {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+/* Animations pour les notifications temps réel (Flash temporaire) */
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(0, 154, 68, 0.4); border-color: rgba(0, 154, 68, 0.8); background-color: rgba(0, 154, 68, 0.1); }
+  50% { box-shadow: 0 0 15px 5px rgba(0, 154, 68, 0.2); border-color: rgba(0, 154, 68, 1); background-color: rgba(0, 154, 68, 0.15); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 154, 68, 0); border-color: rgba(0, 154, 68, 0.2); background-color: transparent; }
+}
+
+.new-notification-glow {
+  animation: pulse-glow 2.5s ease-in-out 3; /* Pulse 3 fois (7.5s) puis s'arrête */
+  border-width: 2px !important;
 }

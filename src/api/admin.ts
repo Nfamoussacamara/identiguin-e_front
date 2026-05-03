@@ -39,11 +39,23 @@ export const getSystemStatus = async (): Promise<ISystemStatus> => {
 };
 
 /**
- * Récupère la liste complète des demandes citoyennes
+ * Récupère la liste complète des demandes citoyennes avec support recherche et filtres.
  */
-export const getAdminDemandes = async (page = 1, pageSize = 10): Promise<IPaginatedResponse<IDemande>> => {
+export const getAdminDemandes = async (
+  page = 1, 
+  pageSize = 10, 
+  search = '', 
+  type = '', 
+  statut = ''
+): Promise<IPaginatedResponse<IDemande>> => {
   const response = await client.get<IPaginatedResponse<IDemande>>('/demandes/admin/all/', {
-    params: { page, page_size: pageSize }
+    params: { 
+      page, 
+      page_size: pageSize,
+      search,
+      type_document: type,
+      statut
+    }
   });
   return response.data;
 };
