@@ -10,7 +10,8 @@ export const useAdminWebSocket = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const wsUrl = `ws://${window.location.hostname}:8000/ws/admin/notifications/`;
+    const token = localStorage.getItem('access_token');
+    const wsUrl = `ws://${window.location.hostname}:8000/ws/admin/notifications/?token=${token}`;
     const socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
