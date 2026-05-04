@@ -26,7 +26,7 @@ const PublicVerify = () => {
 
     try {
       // Simulation d'appel à l'API de vérification publique
-      const response = await axios.get(`http://localhost:8000/api/v1/verification/public/${reference}/`);
+      const response = await axios.get(`/api/v1/verification/public/${reference}/`);
       setResult(response.data);
     } catch (err: any) {
       if (err.response?.status === 404) {
