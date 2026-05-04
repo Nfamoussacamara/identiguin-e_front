@@ -84,6 +84,14 @@ const Navbar = () => {
 
           {/* CTA Desktop */}
           <div className="hidden md:flex items-center gap-4">
+            <Link
+              to="/verifier"
+              className={`font-body text-sm font-medium transition-all hover:text-green flex items-center gap-2 ${
+                isScrolled ? 'text-text-muted' : 'text-white/80'
+              }`}
+            >
+              <Shield className="w-4 h-4" /> Vérifier
+            </Link>
             <a
               href="https://stitch.withgoogle.com/preview/4670336962817990775?node-id=b9e984092259499dbd4dc34fbfa2b8d1"
               target="_blank"
@@ -147,6 +155,14 @@ const Navbar = () => {
           ))}
         </nav>
           <div className="mt-8 space-y-4">
+            <Link
+              to="/verifier"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="flex items-center justify-center gap-2 bg-surface text-dark border border-border px-6 py-4 rounded-xl font-body text-lg font-medium shadow-sm w-full"
+            >
+              <Shield className="w-5 h-5 text-green" />
+              Vérifier un document
+            </Link>
             <Link
               to={isAuthenticated ? targetDashboard : "/login"}
               onClick={() => setIsMobileMenuOpen(false)}

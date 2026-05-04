@@ -226,6 +226,28 @@ const AdminDashboard: React.FC = () => {
       </div>
 
 
+      {/* ── ZONE 4 : Répartition Régionale (Nouvelle section demandée) ── */}
+      <DashboardCard title="Déploiement National — Répartition par Région Administrative" loading={isLoading}>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 py-2">
+          {[
+            { name: 'Conakry', pct: 45, color: '#009A44' },
+            { name: 'Kindia', pct: 15, color: '#FCD116' },
+            { name: 'Boké', pct: 12, color: '#CE1126' },
+            { name: 'Labé', pct: 10, color: '#009A44' },
+            { name: 'Kankan', pct: 8, color: '#FCD116' },
+            { name: 'Nzérékoré', pct: 5, color: '#CE1126' },
+            { name: 'Faranah', pct: 3, color: '#009A44' },
+            { name: 'Mamou', pct: 2, color: '#FCD116' },
+          ].map((region) => (
+            <div key={region.name} className="flex flex-col items-center gap-2 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-green/30 transition-all group">
+              <div className="w-12 h-12 rounded-full border-2 flex items-center justify-center text-[10px] font-black text-dark group-hover:scale-110 transition-transform" style={{ borderColor: region.color }}>
+                {region.pct}%
+              </div>
+              <span className="text-[9px] font-black uppercase tracking-tighter text-gray-400 group-hover:text-dark transition-colors">{region.name}</span>
+            </div>
+          ))}
+        </div>
+      </DashboardCard>
 
       {/* ── ZONE 5 : Graphique 24h ───────────────────────────────── */}
       {isLoading

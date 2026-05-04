@@ -34,6 +34,9 @@ const DocumentDetails = lazy(() => import('./pages/dashboard/DocumentDetails'));
 // Admin Pages
 const AdminDashboard = lazy(() => import('./pages/admin/AdminDashboard'));
 
+// Public Pages
+const PublicVerify = lazy(() => import('./pages/PublicVerify'));
+
 
 const LandingPage = () => (
   <div className="flex flex-col min-h-screen relative overflow-x-hidden bg-bg">
@@ -71,6 +74,9 @@ function App() {
 
           {/* Authentication */}
           <Route path="/login" element={<Login />} />
+
+          {/* Public Verification (Police, Schools, Banks) */}
+          <Route path="/verifier" element={<PublicVerify />} />
 
           {/* Dashboard - Total Isolation */}
           <Route path="/dashboard" element={<DashboardLayout />}>
